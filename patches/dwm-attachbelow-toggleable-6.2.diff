@@ -16,8 +16,9 @@ index 1c0b587..51ad933 100644
  static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
  static const int nmaster     = 1;    /* number of clients in master area */
  static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
+ static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
 +static const int attachbelow = 1;    /* 1 means attach at the end */
- 
+
  static const Layout layouts[] = {
  	/* symbol     arrange function */
 diff --git a/dwm.c b/dwm.c
@@ -111,6 +112,7 @@ index 51ad933..cb8053a 100644
  static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
  static const int nmaster     = 1;    /* number of clients in master area */
  static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
+ static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
 -static const int attachbelow = 1;    /* 1 means attach at the end */
 +static const int attachbelow = 1;    /* 1 means attach after the currently active window */
  
@@ -165,6 +167,7 @@ index cb8053a..b4d35aa 100644
  static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
  static const int nmaster     = 1;    /* number of clients in master area */
  static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
+ static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
 -static const int attachbelow = 1;    /* 1 means attach after the currently active window */
 +static int attachbelow = 1;    /* 1 means attach after the currently active window */
  
@@ -178,7 +181,7 @@ index bd715a2..5d88653 100644
  static void arrangemon(Monitor *m);
  static void attach(Client *c);
  static void attachBelow(Client *c);
-+static void toggleAttachBelow();
++static void toggleattachbelow();
  static void attachstack(Client *c);
  static void buttonpress(XEvent *e);
  static void checkotherwm(void);
@@ -186,7 +189,7 @@ index bd715a2..5d88653 100644
  
  }
  
-+void toggleAttachBelow()
++void toggleattachbelow()
 +{
 +	attachbelow = !attachbelow;
 +}
