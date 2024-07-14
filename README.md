@@ -12,9 +12,9 @@
     - swallow [x]
     - vanitygaps [x]
     - stacker [x]
-    - scratchpads [ ]
-    - autostart [ ]
-    - selfrestart [ ]
+    - scratchpads [x]
+    - autostart [x]
+    - selfrestart [x]
     - smartborders [ ]
     - systray(SUPEREXPIREMINTAL) [ ]
 
