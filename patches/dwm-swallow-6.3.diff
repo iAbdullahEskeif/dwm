@@ -70,12 +70,12 @@ index e5efb6a22806..e68294b6b679 100644
  
  #include "drw.h"
  #include "util.h"
-@@ -92,9 +98,11 @@ struct Client {
+@@ -93,9 +98,11 @@ struct Client {
  	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
  	int bw, oldbw;
  	unsigned int tags;
--	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
-+	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, isterminal, noswallow;
+-	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen,issticky;
++	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen, issticky, isterminal, noswallow;
 +	pid_t pid;
  	Client *next;
  	Client *snext;
