@@ -9,7 +9,7 @@
 #define TERMINAL  "st"
 #define TERMCLASS "St"
 #define MENU      "dmenu_run"
-#define BROWSER   "librewolf"
+#define BROWSER   "google-chrome-stable"
 /* appearance */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const unsigned int gappih    = 20;       /* horiz inner gap between windows */
@@ -17,7 +17,7 @@ static const unsigned int gappiv    = 10;       /* vert inner gap between window
 static const unsigned int gappoh    = 10;       /* horiz outer gap between windows and screen edge */
 static const unsigned int gappov    = 30;       /* vert outer gap between windows and screen edge */
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
-static const int topbar             = 0;        /* 0 means bottom bar */
+static const int topbar             = 1;        /* 0 means bottom bar */
 static const int swallowfloating    = 1;        /* 1 means swallow floating windows by default */
 static const int showbar            = 1;        /* 0 means no bar */
 static int smartgaps                = 1;        /* 1 means no outer gap when there is only one window */
@@ -92,7 +92,7 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() 
 /* NOTE: Commands */
 static const char *termcmd[]      = { TERMINAL, NULL };
 static const char *menucmd[]      = { MENU,"-l","10", NULL };
-static const char *filemanager[]  = { TERMINAL, "-e", "yazi", NULL };
+static const char *filemanager[]  = { "obsidian", NULL };
 static const char *applauncher[]  = { "/home/aboud/.local/bin/scripts/dmenu/applauncher.sh"};
 static const char *musicplayer[]  = { TERMINAL, "-e", "ncmpcpp", NULL };
 static const char *texteditor[]   = { TERMINAL, "-e", "nvim", NULL };
@@ -157,12 +157,10 @@ static const Key keys[] = {
 
 	{ MODKEY,			XK_t,                    setlayout,        {.v = &layouts[0]} }, /* tile */
 	{ MODKEY|ShiftMask,		XK_Return,	         togglescratch,    {.ui = 0} }, 
-	{ MODKEY,                       XK_g,			 gesture,          {0} },
 	{ MODKEY|ShiftMask,		XK_a,                    defaultgaps,      {0} },
 	{ MODKEY,			XK_a,                    togglegaps,       {0} },
 	{ MODKEY|ShiftMask,		XK_space,                togglefloating,   {0} },
 	{ MODKEY,			XK_f,	                 togglefullscr,    {0} },
-	{ MODKEY,                       XK_f,			 togglefullscr,    {0} },
 	{ MODKEY,                       XK_s,			 togglesticky,     {0} },
 	{ MODKEY,			XK_b,		         togglebar,        {0} },
 	{ MODKEY|ShiftMask,             XK_Tab,			 toggleattachbelow,{0} },
@@ -182,6 +180,7 @@ static const Key keys[] = {
 
 	// NOTE:DMENU
 	{ MODKEY|ShiftMask,		XK_d,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/passmenu", NULL } } },
+	{ MODKEY|ShiftMask,		XK_s,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/excalidraw.sh", NULL } } },
 	{ MODKEY,			XK_p,			 spawn,            {.v = (const char*[]){ TERMINAL,"-e","/home/aboud/.local/bin/scripts/programming/new.sh", NULL } } },
 	{ MODKEY|ShiftMask,		XK_n,			 spawn,            {.v = (const char*[]){ TERMINAL,"-e","nvim","/home/aboud/github/todolist/", NULL } } },
 	{ MODKEY|ShiftMask,		XK_m,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/notes/displaynotes.sh", NULL } } },
@@ -189,7 +188,7 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,		XK_w,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/networkmanager_applet", NULL } } },
 	{ MODKEY|ShiftMask,		XK_b,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/bm.sh", NULL } } },
 	{ MODKEY|ShiftMask,		XK_q,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/powermenu.sh", NULL } } },
-	{ Mod2Mask|ShiftMask,		XK_y,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/youtubesearch", NULL } } },
+	{ Mod1Mask|ShiftMask,		XK_y,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/youtubesearch", NULL } } },
 	{ Mod1Mask|ShiftMask,		XK_g,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/googlesearch", NULL } } },
         { Mod1Mask,			XK_period,               spawn,            {.v = (const char*[]){ "python","/home/aboud/.local/bin/scripts/dmenu/obsidian.py", NULL } } },
 
@@ -218,22 +217,10 @@ static const Button buttons[] = {
 	{ ClkStatusText,        0,              Button2,        spawn,          {.v = termcmd } },
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
 	{ ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
-	{ ClkClientWin,         MODKEY,         Button1,        resizemouse,    {0} },
-    	{ ClkClientWin,         MODKEY|ShiftMask,Button3,       gesture,        {0} },
+	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
 	{ ClkTagBar,            0,              Button1,        view,           {0} },
 	{ ClkTagBar,            0,              Button3,        toggleview,     {0} },
 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
 };
 
-/* gestures
- * u means up
- * d means down
- * l means left
- * r means right
- * ud means up and down
- */
-static Gesture gestures[] = {
-	{ "u",  spawn, {.v = termcmd } },
-	{ "d",  spawn, {.v = menucmd } },
-};

@@ -89,11 +89,6 @@ typedef union {
 	const void *v;
 } Arg;
 
-typedef struct {
-    char *gname;
- 	void (*func)(const Arg *arg);
- 	const Arg arg;
-} Gesture;
 
 typedef struct {
 	unsigned int click;
@@ -221,7 +216,6 @@ static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
 static void monocle(Monitor *m);
 static void motionnotify(XEvent *e);
-static void gesture(const Arg *arg);
 static void movemouse(const Arg *arg);
 static Client *nexttiled(Client *c);
 static void pop(Client *c);
@@ -1304,68 +1298,6 @@ motionnotify(XEvent *e)
 		focus(NULL);
 	}
 	mon = m;
-}
-
-void
-gesture(const Arg *arg) {
-	int x, y, dx, dy, q;
-	int valid=0, listpos=0, gestpos=0, count=0;
-	char move, currGest[10];
-	XEvent ev;
-
-	if (XGrabPointer(dpy, root, False, MOUSEMASK, GrabModeAsync, GrabModeAsync,
-		None, cursor[CurMove]->cursor, CurrentTime) != GrabSuccess)
-		return;
-	if(!getrootptr(&x, &y))
-		return;
-	do {
-		XMaskEvent(dpy, MOUSEMASK|ExposureMask|SubstructureRedirectMask, &ev);
-		switch (ev.type) {
-			case ConfigureRequest:
-			case Expose:
-			case MapRequest:
-				handler[ev.type](&ev);
-				break;
-			case MotionNotify:
-				if(count++ < 10)
-					break;
-				count = 0;
-				dx = ev.xmotion.x - x;
-				dy = ev.xmotion.y - y;
-				x = ev.xmotion.x;
-				y = ev.xmotion.y;
-
-				if( abs(dx)/(abs(dy)+1) == 0 )
-					move = dy<0?'u':'d';
-				else
-					move = dx<0?'l':'r';
-
-				if(move!=currGest[gestpos-1])
-				{
-					if(gestpos>9)
-					{	ev.type++;
-						break;
-					}
-
-					currGest[gestpos] = move;
-					currGest[++gestpos] = '\0';
-
-					valid = 0;
-					for(q = 0; q<LENGTH(gestures); q++)
-					{	if(!strcmp(currGest, gestures[q].gname))
-						{	valid++;
-							listpos = q;
-						}
-					}
-				}
-
-		}
-	} while(ev.type != ButtonRelease);
-
-	if(valid)
-		gestures[listpos].func(&(gestures[listpos].arg));
-
-	XUngrabPointer(dpy, CurrentTime);
 }
 
 void
