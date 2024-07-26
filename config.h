@@ -1,15 +1,14 @@
 /* See LICENSE file for copyright and license details. */
-// NOTE: imports
+/* Abdullah Eskeif's Minimal dwm build */
 
 #include "./themes/tokyonight.h"
 #include <X11/X.h>
 
 
-/* NOTE: Constants */
+/* Constants */
 #define TERMINAL  "st"
 #define TERMCLASS "St"
-#define MENU      "dmenu_run"
-#define BROWSER   "firefox"
+
 /* appearance */
 static const unsigned int borderpx  = 0;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
@@ -20,29 +19,28 @@ static const unsigned int gappov    = 30;       /* vert outer gap between window
 static const int topbar             = 1;        /* 0 means bottom bar */
 static const int swallowfloating    = 1;        /* 1 means swallow floating windows by default */
 static const int showbar            = 0;        /* 0 means no bar */
-static const int startontag         = 1;        /* 0 means no tag active on start */
 static int smartgaps                = 1;        /* 1 means no outer gap when there is only one window */
 static const char *fonts[]          = { "JetBrains Mono Nerd Font:size=10"};
 
-static const XPoint stickyicon[]    = { {0,0}, {4,0}, {4,8}, {2,6}, {0,8}, {0,0} }; /* represents the icon as an array of vertices */
-static const XPoint stickyiconbb    = {4,8};	/* defines the bottom right corner of the polygon's bounding box (speeds up scaling) */
 
-// NOTE: Scratchpad 
+//  Scratchpad 
 
 typedef struct {
 	const char *name;
 	const void *cmd;
 } Sp;
 const char *spcmd1[] = {TERMINAL, "-n", "spterm", "-g", "60x20", NULL };
+const char *spcmd2[] = {"sent", NULL };
 static Sp scratchpads[] = {
 	/* name          cmd  */
 	{"spterm",      spcmd1},
+	{"spdn",      spcmd2},
 };
 
-/* NOTE: Tagging */
+/*  Tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 
-/* NOTE: Rules */
+/*  Rules */
 static const Rule rules[] = {
 	/* xprop(1):
 	 *	WM_CLASS(STRING) = instance, class
@@ -51,11 +49,13 @@ static const Rule rules[] = {
 	/* class     instance  title           tags mask  isfloating  isterminal  noswallow  monitor */
 	{ "Gimp",    NULL,     NULL,           1 << 4 ,   1,          0,          0,         -1 },
 	{ TERMCLASS, NULL,     NULL,           0,         0,          1,          0,         -1 },
+	{ "st", NULL,     NULL,                0,         0,          1,          0,         -1 },
 	{ NULL,	     "spterm", NULL,	       SPTAG(0),  1,	      1,          0,         -1 },
 	{ NULL,      NULL,     "Event Tester", 0,         0,          0,          1,         -1 }, /* xev */
+	{ "sent",    NULL,     NULL,	       0,         1,          0,          1,         -1 }, /* xev */
 };
 
-/*  NOTE: layout(s) */
+/*   layout(s) */
 static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
@@ -69,22 +69,11 @@ static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[]=",      tile },    /* first entry is default */
 	{ "[M]",      monocle },
-	{ "[@]",      spiral },
-	{ "[\\]",     dwindle },
-	{ "H[]",      deck },
-	{ "TTT",      bstack },
-	{ "===",      bstackhoriz },
-	{ "HHH",      grid },
-	{ "###",      nrowgrid },
-	{ "---",      horizgrid },
-	{ ":::",      gaplessgrid },
-	{ "|M|",      centeredmaster },
-	{ ">M>",      centeredfloatingmaster },
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ NULL,       NULL },
 };
 
-/* NOTE: key definitions */
+/*  key definitions */
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
@@ -101,29 +90,16 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-/* NOTE: Commands */
+/*  Commands */
 static const char *termcmd[]      = { TERMINAL, NULL };
-static const char *menucmd[]      = { MENU,"-l","10", NULL };
-static const char *browser[]      = { BROWSER, NULL };
-static const char *filemanager[]  = { TERMINAL, "-e", "yazi", NULL };
+static const char *browser[]      = { "firefox", NULL };
+static const char *menucmd[]      = { "dmenu_run","-l","10", NULL };
 static const char *texteditor[]   = { TERMINAL, "-e", "nvim", NULL };
 static const char *taskmanager[]  = { TERMINAL, "-e", "btop", NULL };
 static const char *lockscreen[]	  = { "slock", NULL };
-static const char *secondbrain[]  = { "obsidian", NULL };
-static const char *notetaking[]	  = { "todoist", NULL };
 
-Autostarttag autostarttaglist[] = {
-	{.cmd = notetaking,  .tags = 1 << 1 },
-	{.cmd = secondbrain, .tags = 1 << 2 },
-	{.cmd = browser,     .tags = 1 << 3 },
-	{.cmd = texteditor,  .tags = 1 << 4 },
-	{.cmd = NULL,	     .tags = 0      },
-};
-
-#include "selfrestart.c"
 #include <X11/XF86keysym.h>
-
-
+#include "shiftview.c"
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -138,55 +114,30 @@ static const Key keys[] = {
 	TAGKEYS(			XK_7,		6)
 	TAGKEYS(			XK_8,		7)
 	TAGKEYS(			XK_9,		8)
+	{ MODKEY,			XK_q,                    killclient,       {0} },
 	{ MODKEY|ControlMask|ShiftMask, XK_q,                    quit,             {1} }, 
-	{ MODKEY|ControlMask|ShiftMask, XK_r,                    self_restart,     {0} },
 	{ MODKEY,			XK_0,                    view,             {.ui = ~0 } },
 	{ MODKEY|ShiftMask,	        XK_0,                    tag,              {.ui = ~0 } },
-	{ MODKEY,			XK_q,                    killclient,       {0} },
 
-    //    NOTE: Browser
-
-	{ MODKEY,			XK_w,                    spawn,            {.v = (const char*[]){ BROWSER, NULL } } },
-        { MODKEY,                	XK_e,		         spawn,            {.v = (const char*[]){ BROWSER,"gmail.com", NULL } } },
-	{ MODKEY|Mod1Mask,		XK_d,                    spawn,            {.v = (const char*[]){ BROWSER,"datacamp.com", NULL } } },
-	{ MODKEY|Mod1Mask,		XK_y,                    spawn,            {.v = (const char*[]){ BROWSER,"youtube.com", NULL } } },
-	{ MODKEY|Mod1Mask,		XK_c,                    spawn,            {.v = (const char*[]){ BROWSER,"coursera.org", NULL } } },
-	{ MODKEY|Mod1Mask,		XK_l,                    spawn,            {.v = (const char*[]){ BROWSER,"lichess.org", NULL } } },
-	{ MODKEY|Mod1Mask|ShiftMask,	XK_l,                    spawn,            {.v = (const char*[]){ BROWSER,"linkedin.com", NULL } } },
-	{ MODKEY|Mod1Mask,	        XK_s,                    spawn,            {.v = (const char*[]){ BROWSER,"https://excalidraw.com/", NULL } } },
-	{ MODKEY|Mod1Mask,		XK_w,                    spawn,            {.v = (const char*[]){ BROWSER,"web.whatsapp.com/", NULL } } },
-	{ MODKEY|Mod1Mask,		XK_f,                    spawn,            {.v = (const char*[]){ BROWSER,"facebook.com", NULL } } },
-
-    // NOTE: Applications
+    //  Applications
 
 	{ MODKEY,			XK_Return,          	 spawn,            {.v = termcmd     } },
+	{ MODKEY,			XK_w,               	 spawn,            {.v = browser     } },
 	{ MODKEY,			XK_d,                    spawn,            {.v = menucmd     } },
-	{ MODKEY,			XK_r,                    spawn,            {.v = filemanager } },
         { MODKEY,			XK_n,		         spawn,            {.v = texteditor  } },
 	{ MODKEY|ShiftMask,		XK_r,                    spawn,            {.v = taskmanager } },
 	{ MODKEY|ShiftMask,		XK_l,                    spawn,            {.v = lockscreen  } },
 
-    // NOTE: Layout and Movements
+    //  Layout and Movements
 
 	{ MODKEY,			XK_t,                    setlayout,        {.v = &layouts[0]} }, /* tile */
 	{ MODKEY|ShiftMask,		XK_t,                    setlayout,        {.v = &layouts[1]} }, /* tile */
-	{ MODKEY|Mod1Mask,		XK_1,                    setlayout,        {.v = &layouts[2]} }, /* tile */
-	{ MODKEY|Mod1Mask,		XK_2,                    setlayout,        {.v = &layouts[3]} }, /* tile */
-	{ MODKEY|Mod1Mask,		XK_3,                    setlayout,        {.v = &layouts[4]} }, /* tile */
-	{ MODKEY|Mod1Mask,		XK_4,                    setlayout,        {.v = &layouts[5]} }, /* tile */
-	{ MODKEY|Mod1Mask|ShiftMask,	XK_4,                    setlayout,        {.v = &layouts[6]} }, /* tile */
-	{ MODKEY|Mod1Mask,		XK_5,                    setlayout,        {.v = &layouts[7]} }, /* tile */
-	{ MODKEY|Mod1Mask,		XK_6,                    setlayout,        {.v = &layouts[8]} }, /* tile */
-	{ MODKEY|Mod1Mask,		XK_7,                    setlayout,        {.v = &layouts[9]} }, /* tile */
-	{ MODKEY|Mod1Mask,		XK_8,                    setlayout,        {.v = &layouts[10]} }, /* tile */
-	{ MODKEY|Mod1Mask,		XK_9,                    setlayout,        {.v = &layouts[11]} }, /* tile */
-	{ MODKEY|Mod1Mask|ShiftMask,	XK_9,                    setlayout,        {.v = &layouts[12]} }, /* tile */
 	{ MODKEY|ShiftMask,		XK_Return,	         togglescratch,    {.ui = 0} }, 
+	{ MODKEY|ShiftMask,		XK_n,			 togglescratch,    {.ui = 1} }, 
 	{ MODKEY|ShiftMask,		XK_a,                    defaultgaps,      {0} },
 	{ MODKEY,			XK_a,                    togglegaps,       {0} },
 	{ MODKEY|ShiftMask,		XK_space,                togglefloating,   {0} },
 	{ MODKEY,			XK_f,	                 togglefullscr,    {0} },
-	{ MODKEY|ShiftMask,             XK_s,			 togglesticky,     {0} },
 	{ MODKEY,			XK_b,		         togglebar,        {0} },
 	{ MODKEY|ShiftMask,             XK_Tab,			 toggleattachbelow,{0} },
 	{ MODKEY,			XK_h,	                 setmfact,         {.f = -0.05} },
@@ -197,25 +148,28 @@ static const Key keys[] = {
 	{ MODKEY,			XK_comma,		 focusmon,	   {.i = +1 } },
 	{ MODKEY|ShiftMask,		XK_period,		 tagmon,	   {.i = -1 } },
 	{ MODKEY|ShiftMask,		XK_comma,		 tagmon,	   {.i = +1 } },
+	{ MODKEY,			XK_semicolon,		 shiftview,	   {.i = +1 } },
+	{ MODKEY|ShiftMask,		XK_semicolon,		 shiftview,	   {.i = -1 } },
+ 
+   //  Scripts
+	{ MODKEY,			XK_Insert,	         spawn,            SHCMD("xdotool type $(grep -v '^#' ~/.local/bin/scripts/dmenu/bookmarks | dmenu -l 10 | cut -d' ' -f1)") },
+        { MODKEY|ShiftMask,		XK_e,		         spawn,            SHCMD("xdotool type $(grep -v '^#' ~/.local/bin/scripts/dmenu/emails | dmenu -l 10 | cut -d' ' -f1)") },
+        { MODKEY,			XK_s,	                 spawn,            SHCMD("maim -u | feh -F - & maim -s -k ~/personal/pictures/$(date +%s).png && kill $!") },
 
-   // NOTE: Scripts
-	{ MODKEY,			XK_Insert,	         spawn,            SHCMD("xdotool type $(grep -v '^#' /home/aboud/.local/bin/scripts/dmenu/bookmarks | dmenu -l 10 | cut -d' ' -f1)") },
-        { MODKEY|ShiftMask,		XK_e,		         spawn,            SHCMD("xdotool type $(grep -v '^#' /home/aboud/.local/bin/scripts/dmenu/emails | dmenu -l 10 | cut -d' ' -f1)") },
-        { MODKEY,			XK_s,	                 spawn,            SHCMD("maim -u | feh -F - & maim -s -k /home/aboud/personal/pictures/$(date +%s).png && kill $!") },
+   // DMENU
+	{ MODKEY|ShiftMask,		XK_d,                    spawn,            {.v = (const char*[]){ "~/.local/bin/scripts/dmenu/passmenu", NULL } } },
+	{ MODKEY,			XK_p,			 spawn,            {.v = (const char*[]){ TERMINAL,"-e","~/.local/bin/scripts/programming/new.sh", NULL } } },
+	{ MODKEY,			XK_space,		 spawn,            {.v = (const char*[]){"~/.local/bin/scripts/lang",NULL } }  },
+	{ MODKEY|ShiftMask,		XK_w,                    spawn,            {.v = (const char*[]){ "~/.local/bin/scripts/dmenu/networkmanager_applet", NULL } } },
+	{ MODKEY|ShiftMask,		XK_b,                    spawn,            {.v = (const char*[]){ "~/.local/bin/scripts/dmenu/bm.sh", NULL } } },
+	{ MODKEY|ShiftMask,		XK_q,                    spawn,            {.v = (const char*[]){ "~/.local/bin/scripts/dmenu/powermenu.sh", NULL } } },
+	{ MODKEY,			XK_u,                    spawn,            {.v = (const char*[]){ "~/.local/bin/scripts/Touchpadoff.sh", NULL } } },
+	{ MODKEY|ShiftMask,		XK_u,                    spawn,            {.v = (const char*[]){ "~/.local/bin/scripts/Touchpadon.sh", NULL } } },
+	{ Mod1Mask|ShiftMask,		XK_y,                    spawn,            {.v = (const char*[]){ "~/.local/bin/scripts/dmenu/youtubesearch", NULL } } },
+	{ Mod1Mask|ShiftMask,		XK_g,                    spawn,            {.v = (const char*[]){ "~/.local/bin/scripts/dmenu/googlesearch", NULL } } },
+        { Mod1Mask,			XK_period,               spawn,            {.v = (const char*[]){ "python","~/.local/bin/scripts/dmenu/obsidian.py", NULL } } },
 
-	// NOTE:DMENU
-	{ MODKEY|ShiftMask,		XK_d,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/passmenu", NULL } } },
-	{ MODKEY|ShiftMask,		XK_s,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/excalidraw.sh", NULL } } },
-	{ MODKEY,			XK_p,			 spawn,            {.v = (const char*[]){ TERMINAL,"-e","/home/aboud/.local/bin/scripts/programming/new.sh", NULL } } },
-	{ MODKEY,			XK_space,		 spawn,            {.v = (const char*[]){"/home/aboud/.local/bin/scripts/lang",NULL } }  },
-	{ MODKEY|ShiftMask,		XK_w,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/networkmanager_applet", NULL } } },
-	{ MODKEY|ShiftMask,		XK_b,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/bm.sh", NULL } } },
-	{ MODKEY|ShiftMask,		XK_q,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/powermenu.sh", NULL } } },
-	{ Mod1Mask|ShiftMask,		XK_y,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/youtubesearch", NULL } } },
-	{ Mod1Mask|ShiftMask,		XK_g,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/googlesearch", NULL } } },
-        { Mod1Mask,			XK_period,               spawn,            {.v = (const char*[]){ "python","/home/aboud/.local/bin/scripts/dmenu/obsidian.py", NULL } } },
-
-    // NOTE: XF86 Keys
+   //  XF86 Keys
 	
 	{ 0,			       XF86XK_MonBrightnessUp,	 spawn,            SHCMD("light -A 5") },
 	{ 0,			       XF86XK_MonBrightnessDown, spawn,	           SHCMD("light -U 5") },
