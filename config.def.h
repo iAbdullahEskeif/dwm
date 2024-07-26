@@ -99,7 +99,6 @@ static const char *taskmanager[]  = { TERMINAL, "-e", "btop", NULL };
 static const char *lockscreen[]	  = { "slock", NULL };
 
 #include <X11/XF86keysym.h>
-#include "shiftview.c"
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -147,8 +146,6 @@ static const Key keys[] = {
 	{ MODKEY,			XK_comma,		 focusmon,	   {.i = +1 } },
 	{ MODKEY|ShiftMask,		XK_period,		 tagmon,	   {.i = -1 } },
 	{ MODKEY|ShiftMask,		XK_comma,		 tagmon,	   {.i = +1 } },
-	{ MODKEY,			XK_semicolon,		 shiftview,	   {.i = +1 } },
-	{ MODKEY|ShiftMask,		XK_semicolon,		 shiftview,	   {.i = -1 } },
  
    //  Scripts
 	{ MODKEY,			XK_Insert,	         spawn,            SHCMD("xdotool type $(grep -v '^#' ~/.local/bin/scripts/dmenu/bookmarks | dmenu -l 10 | cut -d' ' -f1)") },
