@@ -1,0 +1,24 @@
+--- dwm.c
++++ dwm.c
+@@ -211,6 +216,8 @@ static void setup(void);
+ static void seturgent(Client *c, int urg);
+ static void showhide(Client *c);
+ static void spawn(const Arg *arg);
++static void autostarttagsspawner(void);
++static void applyautostarttags(Client *c);
+ static void tag(const Arg *arg);
+ static void tagmon(const Arg *arg);
+ static void tile(Monitor *m);
+@@ -1058,7 +1068,11 @@ manage(Window w, XWindowAttributes *wa)
+ 		c->tags = t->tags;
+ 	} else {
+ 		c->mon = selmon;
+-		applyrules(c);
++		if (autostarttags) {
++			applyautostarttags(c);
++		} else {
++			applyrules(c);
++		}
+ 	}
+ 
+ 	if (c->x + WIDTH(c) > c->mon->wx + c->mon->ww)

@@ -113,6 +113,14 @@ static const char *lockscreen[]	  = { "slock", NULL };
 #include "shiftview.c"
 #include "selfrestart.c"
 
+
+Autostarttag autostarttaglist[] = {
+	{.cmd = browser, .tags = 1 << 0 },
+	{.cmd = notetaking, .tags = 1 << 1 },
+	{.cmd = zellij, .tags = 1 << 2 },
+	{.cmd = NULL, .tags = 0 },
+};
+
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
 	STACKKEYS(MODKEY,                            focus)

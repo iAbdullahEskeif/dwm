@@ -169,11 +169,6 @@ typedef struct {
 } Rule;
 
 
-typedef struct {
-	const char **cmd;
-	unsigned int tags;
-} Autostarttag;
-
 /* function declarations */
 static void applyrules(Client *c);
 static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
@@ -182,8 +177,6 @@ static void arrangemon(Monitor *m);
 static void attach(Client *c);
 static void attachBelow(Client *c);
 static void attachstack(Client *c);
-static void autostarttagsspawner(void);
-static void applyautostarttags(Client *c);
 static void buttonpress(XEvent *e);
 static void checkotherwm(void);
 static void cleanup(void);
@@ -315,9 +308,6 @@ static Display *dpy;
 static Drw *drw;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
-static unsigned int autostarttags = 0;
-static int autostartcomplete = 0;
-static int autostartcmdscomplete = 0;
 
 static xcb_connection_t *xcon;
 
@@ -1199,11 +1189,7 @@ manage(Window w, XWindowAttributes *wa)
 		c->tags = t->tags;
 	} else {
 		c->mon = selmon;
-		if (autostarttags) {
-			applyautostarttags(c);
-		} else {
-			applyrules(c);
-		}
+		applyrules(c);
 		term = termforwin(c);
 	}
 
@@ -1571,12 +1557,9 @@ run(void)
 	XEvent ev;
 	/* main event loop */
 	XSync(dpy, False);
-	while (running && !XNextEvent(dpy, &ev)){
-		if (!(autostartcomplete || autostarttags))
-			autostarttagsspawner();
+	while (running && !XNextEvent(dpy, &ev))
 		if (handler[ev.type])
 			handler[ev.type](&ev); /* call handler */
-	}
 }
 
 
@@ -1857,33 +1840,6 @@ showhide(Client *c)
 		showhide(c->snext);
 		XMoveWindow(dpy, c->win, WIDTH(c) * -2, c->y);
 	}
-}
-
-void
-autostarttagsspawner(void)
-{
-	int i;
-	Arg arg;
-
-	for (i = autostartcmdscomplete; i < LENGTH(autostarttaglist) ; i++){
-		autostartcmdscomplete += 1;
-		autostarttags = autostarttaglist[i].tags;
-		arg.v = autostarttaglist[i].cmd ;
-		spawn(&arg);
-		return;
-	}
-	autostartcomplete = 1;
-	return;
-}
-
-void
-applyautostarttags(Client *c)
-{
-	if (!c)
-		return;
-	c->tags = autostarttags;
-	autostarttags = 0;
-	return;
 }
 
 void
