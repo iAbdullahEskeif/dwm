@@ -108,17 +108,18 @@ static const char *taskmanager[]  = { TERMINAL, "-e", "btop", NULL };
 static const char *notetaking[]   = { "obsidian", NULL };
 static const char *zellij[]	  = { TERMINAL, "-e", "/home/aboud/.local/bin/scripts/programming/zellij-sessions.sh", NULL };
 static const char *lockscreen[]	  = { "slock", NULL };
+static const char *todoapp[]  = { "todoist", NULL };
 
 #include <X11/XF86keysym.h>
 #include "shiftview.c"
 #include "selfrestart.c"
 
-
 Autostarttag autostarttaglist[] = {
-	{.cmd = browser, .tags = 1 << 0 },
-	{.cmd = notetaking, .tags = 1 << 1 },
-	{.cmd = zellij, .tags = 1 << 2 },
-	{.cmd = NULL, .tags = 0 },
+	{.cmd = browser,     .tags = 1 << 0 },
+	{.cmd = notetaking,  .tags = 1 << 1 },
+	{.cmd = todoapp, .tags = 1 << 2 },
+	{.cmd = zellij,	     .tags = 1 << 2 },
+	{.cmd = NULL,        .tags = 0 },
 };
 
 static const Key keys[] = {
@@ -182,7 +183,7 @@ static const Key keys[] = {
    //  Scripts
 	{ MODKEY,			XK_Insert,	         spawn,            SHCMD("xdotool type $(grep -v '^#' ~/.local/bin/scripts/dmenu/bookmarks | dmenu -l 10 | cut -d' ' -f1)") },
         { MODKEY|ShiftMask,		XK_s,	                 spawn,            SHCMD("maim -u | feh -F - & maim -s -k ~/personal/pictures/$(date +%s).png && kill $!") },
-	{ MODKEY,			XK_p,			 spawn,            SHCMD("st -e ~/.local/bin/scripts/programming/new.sh")},
+	{ MODKEY,			XK_p,			 spawn,            SHCMD("st -e ~/.local/bin/scripts/programming/zellij-cht.sh")},
 	{ MODKEY|ShiftMask,		XK_e,		         spawn,            SHCMD("xdotool type $(grep -v '^#' ~/.local/bin/scripts/dmenu/emails | dmenu -l 10 | cut -d' ' -f1)") },
 	{ MODKEY,			XK_space,		 spawn,            SHCMD("$HOME/.local/bin/scripts/lang")},
 	{ MODKEY,			XK_u,                    spawn,            SHCMD("$HOME/.local/bin/scripts/Touchpadoff.sh")},
@@ -199,7 +200,12 @@ static const Key keys[] = {
         { 0,			        XF86XK_Calculator,	 spawn,            {.v = (const char*[]){ TERMINAL, "-e", "python", NULL } } },
 	{ 0,			        XF86XK_AudioMute,	 spawn,            {.v = (const char*[]){ "wpctl","set-mute", "@DEFAULT_SINK@", "toggle", NULL } } },
 	{ 0,			        XF86XK_AudioRaiseVolume, spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%+", NULL } } },
-	{ 0,			        XF86XK_AudioLowerVolume, spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%-", NULL } } },
+	{ 0,                XF86XK_AudioPlay,			 spawn,            {.v = (const char*[]){ "mpc", "toggle", NULL } } },
+   	{ 0,                XF86XK_AudioPrev,			 spawn,            {.v = (const char*[]){ "mpc", "prev", NULL } } },
+   	{ 0,                XF86XK_AudioNext,			 spawn,            {.v = (const char*[]){ "mpc", "next", NULL } } },
+   	{ MODKEY,           XF86XK_AudioPrev,			 spawn,		   {.v = (const char*[]){ "mpc", "seek","-10", NULL } } },
+   	{ MODKEY,           XF86XK_AudioNext,			 spawn,		   {.v = (const char*[]){ "mpc", "seek","+10", NULL } } },
+	{ 0,	            XF86XK_AudioLowerVolume,		 spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%-", NULL } } },
 };
 
 /* button definitions */
