@@ -5,8 +5,7 @@
 
 
 /* Constants */
-#define TERMINAL  "st"
-#define TERMCLASS "st"
+#define TERMINAL  "alacritty"
 
 /* appearance */
 static const unsigned int borderpx  = 0;        /* border pixel of windows */
@@ -27,12 +26,12 @@ typedef struct {
 	const char *name;
 	const void *cmd;
 } Sp;
-const char *spcmd1[] = {"st", "-n", "spterm", "-g", "60x20", NULL };
-const char *spcmd2[] = {"st", "-n", "spcalc", "-g", "60x20", "-e", "python3", NULL };
-const char *spcmd3[] = {"st", "-n", "spnote", "-g", "60x20", "-e", "/home/aboud/.local/bin/scripts/notetaking/notetaker", NULL };
+const char *spcmd1[] = {"alacritty", "--class", "spterm", "-o", "window.dimensions.columns=60","-o","window.dimensions.lines=20", NULL };
+const char *spcmd2[] = {"alacritty", "--class", "spcalc", "-o", "window.dimensions.columns=60","-o","window.dimensions.lines=20", "-e","python3",NULL };
+const char *spcmd3[] = {"alacritty", "--class", "spnote", "-o", "window.dimensions.columns=60","-o","window.dimensions.lines=20","-e","/home/aboud/.local/bin/scripts/notetaking/notetaker" ,NULL };
 static Sp scratchpads[] = {
 	/* name          cmd  */
-	{"spterm",      spcmd1},
+	{"spterm",    spcmd1},
 	{"spcalc",    spcmd2},
 	{"spnote",    spcmd3},
 };
@@ -49,16 +48,14 @@ static const Rule rules[] = {
 	 */
 	/* class     instance  title           tags mask  isfloating  isterminal  noswallow  monitor scratch key*/
 	{ "Gimp",    NULL,     NULL,           1 << 4 ,   1,          0,          0,         -1},
-	{ "firefox", NULL,     NULL,           1 << 0 ,   0,          0,          0,         -1},
+	{ "google-chrome-stable", NULL,     NULL,           1 << 0 ,   0,          0,          0,         -1},
 	{ "obsidian",NULL,     NULL,           1 << 1 ,   0,          0,          0,         -1},
 	{ "sent",    NULL,     NULL,	       0,         1,          0,          1,         -1},
-	{ TERMCLASS, NULL,     NULL,           0,         0,          1,          0,         -1}, /* xev */
 	{ TERMINAL,  NULL,     NULL,           0,         0,          1,          0,         -1},
 	{ NULL,      NULL,     "Event Tester", 0,         0,          0,          1,         -1}, /* xev */
 	{ NULL,	     "spterm", NULL,	       SPTAG(0),  1,	      1,          0,        -1 },
 	{ NULL,	     "spcalc", NULL,	       SPTAG(1),  1,	      1,	  0,	    -1 },
-	{ NULL,	     "spfile", NULL,	       SPTAG(2),  1,	      1,	  0,	    -1 },
-	{ NULL,	     "spnote", NULL,	       SPTAG(3),  1,	      1,	  1,	    -1 },
+	{ NULL,	     "spnote", NULL,	       SPTAG(2),  1,	      1,	  0,	    -1 },
 };
 
 /*   layout(s) */
@@ -99,13 +96,13 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 /*  Commands */
 static const char *termcmd[]      = { TERMINAL, NULL };
-static const char *browser[]      = { "firefox", NULL };
-static const char *menucmd[]      = { "dmenu_run","-l","10", NULL };
+static const char *browser[]      = { "google-chrome-stable", NULL };
+static const char *menucmd[]      = { "dmenu_run","-l","10", NULL  };
 static const char *texteditor[]   = { TERMINAL, "-e", "nvim", NULL };
 static const char *taskmanager[]  = { TERMINAL, "-e", "btop", NULL };
 static const char *filemanager[]  = { TERMINAL, "-e", "yazi", NULL };
 static const char *notetaking[]   = { "obsidian", NULL };
-static const char *zellij[]	  = { TERMINAL, "-e", "/home/aboud/.local/bin/scripts/programming/zellij-sessions.sh", NULL };
+static const char *tmux[]	  = { TERMINAL, "-e", "/home/aboud/.local/bin/scripts/programming/zellij-sessions.sh", NULL };
 static const char *lockscreen[]	  = { "slock", NULL };
 static const char *todoapp[]      = { "todoist", NULL };
 static const char *musicplayer[]  = { TERMINAL, "-e", "ncmpcpp", NULL };
@@ -143,7 +140,7 @@ static const Key keys[] = {
 	{ MODKEY,			XK_r,                    spawn,            {.v = filemanager } },
 	{ MODKEY,			XK_m,                    spawn,            {.v = musicplayer } },
 	{ MODKEY|ShiftMask,		XK_l,                    spawn,            {.v = lockscreen  } },
-	{ MODKEY|ShiftMask,		XK_z,                    spawn,            {.v = zellij      } },
+	{ MODKEY|ShiftMask,		XK_z,                    spawn,            {.v = tmux      } },
 
     //  Layout and Movements
 
@@ -160,7 +157,7 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,		XK_a,                    defaultgaps,      {0} },
 	{ MODKEY|ShiftMask,		XK_Return,  	         togglescratch,    {.ui = 0 } },
 	{ MODKEY,			XK_c,			 togglescratch,    {.ui = 1 } },
-	{ MODKEY|ShiftMask,		XK_n,			 togglescratch,    {.ui = 3 } },
+	{ MODKEY|ShiftMask,		XK_n,			 togglescratch,    {.ui = 2 } },
 	{ MODKEY,			XK_z,		         incrgaps,         {.i = +3 } },
 	{ MODKEY,			XK_x,		         incrgaps,         {.i = -3 } },
 	{ MODKEY,			XK_semicolon,	         shiftview,        {.i =  1 } },
