@@ -5,7 +5,7 @@
 
 
 /* Constants */
-#define TERMINAL  "alacritty"
+#define TERMINAL  "kitty"
 
 /* appearance */
 static const unsigned int borderpx  = 0;        /* border pixel of windows */
@@ -26,9 +26,9 @@ typedef struct {
 	const char *name;
 	const void *cmd;
 } Sp;
-const char *spcmd1[] = {"alacritty", "--class", "spterm", "-o", "window.dimensions.columns=60","-o","window.dimensions.lines=20", NULL };
-const char *spcmd2[] = {"alacritty", "--class", "spcalc", "-o", "window.dimensions.columns=60","-o","window.dimensions.lines=20", "-e","python3",NULL };
-const char *spcmd3[] = {"alacritty", "--class", "spnote", "-o", "window.dimensions.columns=60","-o","window.dimensions.lines=20","-e","/home/aboud/.local/bin/scripts/notetaking/notetaker" ,NULL };
+const char *spcmd1[] = {"kitty", "--class", "spterm", "-o", "remember_window_size=no", "-o", "initial_window_width=800", "-o", "initial_window_height=600", NULL };
+const char *spcmd2[] = {"kitty", "--class", "spcalc", "-o", "remember_window_size=no", "-o", "initial_window_width=800", "-o", "initial_window_height=600", "-e", "python3", NULL };
+const char *spcmd3[] = {"kitty", "--class", "spnote", "-o", "remember_window_size=no", "-o", "initial_window_width=800", "-o", "initial_window_height=600", "-e", "/home/aboud/.local/bin/scripts/notetaking/notetaker", NULL };
 static Sp scratchpads[] = {
 	/* name          cmd  */
 	{"spterm",    spcmd1},
@@ -48,10 +48,12 @@ static const Rule rules[] = {
 	 */
 	/* class     instance  title           tags mask  isfloating  isterminal  noswallow  monitor scratch key*/
 	{ "Gimp",    NULL,     NULL,           1 << 4 ,   1,          0,          0,         -1},
-	{ "google-chrome-stable", NULL,     NULL,           1 << 0 ,   0,          0,          0,         -1},
+	{ "zen-browser-optimized", NULL,     NULL,           1 << 0 ,   0,         1,          0,         -1},
+	{ "google-chrome-stable", NULL,     NULL,           1 << 0 ,   0,          1,          0,         -1},
 	{ "obsidian",NULL,     NULL,           1 << 1 ,   0,          0,          0,         -1},
 	{ "sent",    NULL,     NULL,	       0,         1,          0,          1,         -1},
 	{ TERMINAL,  NULL,     NULL,           0,         0,          1,          0,         -1},
+	{ "kitty",  NULL,     NULL,           0,         0,          1,          0,         -1},
 	{ NULL,      NULL,     "Event Tester", 0,         0,          0,          1,         -1}, /* xev */
 	{ NULL,	     "spterm", NULL,	       SPTAG(0),  1,	      1,          0,        -1 },
 	{ NULL,	     "spcalc", NULL,	       SPTAG(1),  1,	      1,	  0,	    -1 },
@@ -96,7 +98,7 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 /*  Commands */
 static const char *termcmd[]      = { TERMINAL, NULL };
-static const char *browser[]      = { "google-chrome-stable", NULL };
+static const char *browser[]      = { "zen-browser-optimized", NULL };
 static const char *menucmd[]      = { "dmenu_run","-l","10", NULL  };
 static const char *texteditor[]   = { TERMINAL, "-e", "nvim", NULL };
 static const char *taskmanager[]  = { TERMINAL, "-e", "btop", NULL };
@@ -140,8 +142,13 @@ static const Key keys[] = {
 	{ MODKEY,			XK_r,                    spawn,            {.v = filemanager } },
 	{ MODKEY,			XK_m,                    spawn,            {.v = musicplayer } },
 	{ MODKEY|ShiftMask,		XK_l,                    spawn,            {.v = lockscreen  } },
-	{ MODKEY|ShiftMask,		XK_z,                    spawn,            {.v = tmux      } },
+	{ MODKEY|ShiftMask,		XK_z,                    spawn,            {.v = zellij      } },
 
+    // Web Apps
+	 MODKEY|Mod1Mask,		XK_e,                    spawn,            {.v = (const char*[]){ "google-chrome-stable","--app=https://www.gmail.com",NULL}  } },
+	{ MODKEY|Mod1Mask,		XK_x,                    spawn,            {.v = (const char*[]){ "google-chrome-stable","--app=https://www.excalidraw.com",NULL}  } },
+	{ MODKEY|Mod1Mask,		XK_t,                    spawn,            {.v = (const char*[]){ "google-chrome-stable","--app=https://www.telegram.org",NULL}  } },
+	{ MODKEY|Mod1Mask,		XK_w,                    spawn,            {.v = (const char*[]){ "google-chrome-stable","--app=https://web.whatsapp.com/",NULL}  } },
     //  Layout and Movements
 
 	{ MODKEY,			XK_t,                    setlayout,        {.v = &layouts[0]} }, /* tile */
