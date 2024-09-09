@@ -6,6 +6,7 @@
 
 /* Constants */
 #define TERMINAL  "kitty"
+#define BROWSER  "zen-browser"
 
 /* appearance */
 static const unsigned int borderpx  = 0;        /* border pixel of windows */
@@ -47,17 +48,13 @@ static const Rule rules[] = {
 	 *	WM_NAME(STRING) = title
 	 */
 	/* class     instance  title           tags mask  isfloating  isterminal  noswallow  monitor scratch key*/
-	{ "Gimp",    NULL,     NULL,           1 << 4 ,   1,          0,          0,         -1},
-	{ "zen-browser-optimized", NULL,     NULL,           1 << 0 ,   0,         1,          0,         -1},
-	{ "google-chrome-stable", NULL,     NULL,           1 << 0 ,   0,          1,          0,         -1},
-	{ "obsidian",NULL,     NULL,           1 << 1 ,   0,          0,          0,         -1},
-	{ "sent",    NULL,     NULL,	       0,         1,          0,          1,         -1},
-	{ TERMINAL,  NULL,     NULL,           0,         0,          1,          0,         -1},
-	{ "kitty",  NULL,     NULL,           0,         0,          1,          0,         -1},
-	{ NULL,      NULL,     "Event Tester", 0,         0,          0,          1,         -1}, /* xev */
-	{ NULL,	     "spterm", NULL,	       SPTAG(0),  1,	      1,          0,        -1 },
-	{ NULL,	     "spcalc", NULL,	       SPTAG(1),  1,	      1,	  0,	    -1 },
-	{ NULL,	     "spnote", NULL,	       SPTAG(2),  1,	      1,	  0,	    -1 },
+	{ TERMINAL  ,NULL    , NULL,           0,         0,          1,          0,         -1},
+	{ BROWSER   ,NULL    , NULL,           1 << 1 ,   0,          1,          0,         -1},
+	{ "obsidian",NULL    , NULL,           1 << 0 ,   0,          0,          0,         -1},
+	{ "Gimp"    ,NULL    , NULL,           1 << 6 ,   0,          0,          0,         -1},
+	{ NULL	    ,"spterm", NULL,	       SPTAG(0),  1,	      1,          0,         -1},
+	{ NULL	    ,"spcalc", NULL,	       SPTAG(1),  1,	      1,	  0,	     -1},
+	{ NULL	    ,"spnote", NULL,	       SPTAG(2),  1,	      1,	  0,	     -1},
 };
 
 /*   layout(s) */
@@ -98,7 +95,7 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 /*  Commands */
 static const char *termcmd[]      = { TERMINAL, NULL };
-static const char *browser[]      = { "zen-browser-optimized", NULL };
+static const char *browser[]      = { "zen-browser", NULL };
 static const char *menucmd[]      = { "dmenu_run","-l","10", NULL  };
 static const char *texteditor[]   = { TERMINAL, "-e", "nvim", NULL };
 static const char *taskmanager[]  = { TERMINAL, "-e", "btop", NULL };
@@ -106,12 +103,17 @@ static const char *filemanager[]  = { TERMINAL, "-e", "yazi", NULL };
 static const char *notetaking[]   = { "obsidian", NULL };
 static const char *zellij[]	  = { TERMINAL, "-e", "/home/aboud/.local/bin/scripts/programming/zellij-sessions.sh", NULL };
 static const char *lockscreen[]	  = { "slock", NULL };
-static const char *todoapp[]      = { "todoist", NULL };
 static const char *musicplayer[]  = { TERMINAL, "-e", "ncmpcpp", NULL };
 
 #include <X11/XF86keysym.h>
 #include "shiftview.c"
 
+
+Autostarttag autostarttaglist[] = {
+	{.cmd = notetaking , .tags = 1 << 0 },
+	{.cmd = browser,     .tags = 1 << 1 },
+	{.cmd = NULL,	     .tags = 0 },
+};
 
 static const Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -144,12 +146,6 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,		XK_l,                    spawn,            {.v = lockscreen  } },
 	{ MODKEY|ShiftMask,		XK_z,                    spawn,            {.v = zellij      } },
 
-    // Web Apps
-	{ MODKEY|Mod1Mask,		XK_e,                    spawn,            {.v = (const char*[]){ "google-chrome-stable","--app=https://www.gmail.com",NULL}  } },
-	{ MODKEY|Mod1Mask,		XK_x,                    spawn,            {.v = (const char*[]){ "google-chrome-stable","--app=https://www.excalidraw.com",NULL}  } },
-	{ MODKEY|Mod1Mask,		XK_t,                    spawn,            {.v = (const char*[]){ "google-chrome-stable","--app=https://www.telegram.org",NULL}  } },
-	{ MODKEY|Mod1Mask,		XK_w,                    spawn,            {.v = (const char*[]){ "google-chrome-stable","--app=https://web.whatsapp.com/",NULL}  } },
-    //  Layout and Movements
 
 	{ MODKEY,			XK_t,                    setlayout,        {.v = &layouts[0]} }, /* tile */
 	{ MODKEY|ShiftMask,		XK_t,                    setlayout,        {.v = &layouts[1]} }, /* tile */
@@ -167,7 +163,7 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,		XK_n,			 togglescratch,    {.ui = 2 } },
 	{ MODKEY,			XK_z,		         incrgaps,         {.i = +3 } },
 	{ MODKEY,			XK_x,		         incrgaps,         {.i = -3 } },
-	{ MODKEY,			XK_semicolon,	         shiftview,        {.i =  1 } },
+	{ MODKEY,			XK_semicolon,	         shiftview,        {.i = +1 } },
 	{ MODKEY|ShiftMask,		XK_semicolon,	         shiftview,        {.i = -1 } },
 	{ MODKEY,			XK_period,	 	 focusmon,	   {.i = -1 } },
 	{ MODKEY,			XK_comma,		 focusmon,	   {.i = +1 } },
@@ -194,12 +190,10 @@ static const Key keys[] = {
         { 0,			        XF86XK_Calculator,	 spawn,            {.v = (const char*[]){ TERMINAL, "-e", "python", NULL } } },
 	{ 0,			        XF86XK_AudioMute,	 spawn,            {.v = (const char*[]){ "wpctl","set-mute", "@DEFAULT_SINK@", "toggle", NULL } } },
 	{ 0,			        XF86XK_AudioRaiseVolume, spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%+", NULL } } },
-	{ 0,                XF86XK_AudioPlay,			 spawn,            {.v = (const char*[]){ "mpc", "toggle", NULL } } },
-   	{ 0,                XF86XK_AudioPrev,			 spawn,            {.v = (const char*[]){ "mpc", "prev", NULL } } },
-   	{ 0,                XF86XK_AudioNext,			 spawn,            {.v = (const char*[]){ "mpc", "next", NULL } } },
-   	{ MODKEY,           XF86XK_AudioPrev,			 spawn,		   {.v = (const char*[]){ "mpc", "seek","-10", NULL } } },
-   	{ MODKEY,           XF86XK_AudioNext,			 spawn,		   {.v = (const char*[]){ "mpc", "seek","+10", NULL } } },
 	{ 0,	            XF86XK_AudioLowerVolume,		 spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%-", NULL } } },
+	{ 0,                XF86XK_AudioPlay,			 spawn,            {.v = (const char*[]){ "playerctl", "play-pause", NULL } } },
+   	{ 0,                XF86XK_AudioPrev,			 spawn,            {.v = (const char*[]){ "playerctl", "previous", NULL } } },
+   	{ 0,                XF86XK_AudioNext,			 spawn,            {.v = (const char*[]){ "playerctl", "next", NULL } } },
 };
 
 /* button definitions */
