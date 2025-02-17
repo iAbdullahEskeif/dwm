@@ -57,6 +57,7 @@ incrgaps(const Arg *arg)
 	);
 }
 
+
 void
 getgaps(Monitor *m, int *oh, int *ov, int *ih, int *iv, unsigned int *nc)
 {
@@ -104,12 +105,6 @@ getfacts(Monitor *m, int msize, int ssize, float *mf, float *sf, int *mr, int *s
 	*sr = ssize - stotal; // the remainder (rest) of pixels after an even stack split
 }
 
-/***
- * Layouts
- */
-/*
- * Default tile layout + gaps
- */
 static void
 tile(Monitor *m)
 {
