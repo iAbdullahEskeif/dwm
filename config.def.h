@@ -1,9 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 // NOTE: imports
 
-#include "./themes/tokyonight.h"
 #include <X11/X.h>
-
 
 /* NOTE: Constants */
 #define TERMINAL  "st"
@@ -28,6 +26,16 @@ static const int showbar            = 0;        /* 0 means no bar */
 static const int startontag         = 1;        /* 0 means no tag active on start */
 static int smartgaps                = 1;        /* 1 means no outer gap when there is only one window */
 static const char *fonts[]          = { "JetBrains Mono Nerd Font:size=10"};
+static const char col_gray1[]       = "#222222";
+static const char col_gray2[]       = "#444444";
+static const char col_gray3[]       = "#bbbbbb";
+static const char col_gray4[]       = "#eeeeee";
+static const char col_cyan[]        = "#005577";
+static const char *colors[][3]      = {
+	/*               fg         bg         border   */
+	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
+	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+};
 
 static const XPoint stickyicon[]    = { {0,0}, {4,0}, {4,8}, {2,6}, {0,8}, {0,0} }; /* represents the icon as an array of vertices */
 static const XPoint stickyiconbb    = {4,8};	/* defines the bottom right corner of the polygon's bounding box (speeds up scaling) */
@@ -77,6 +85,7 @@ static const Layout layouts[] = {
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ NULL,       NULL },
 };
+#include "shift-tools.c"
 
 /* NOTE: key definitions */
 #define MODKEY Mod4Mask
@@ -98,10 +107,11 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() 
 /* NOTE: Commands */
 static const char *termcmd[]      = { TERMINAL, NULL };
 static const char *menucmd[]      = { MENU,"-l","10", NULL };
-static const char *filemanager[]  = { TERMINAL, "-e", "yazi", NULL };
+static const char *filemanager[]  = { TERMINAL, "-e", "/home/aboud/.local/bin/lfub", NULL };
 static const char *texteditor[]   = { TERMINAL, "-e", "nvim", NULL };
 static const char *taskmanager[]  = { TERMINAL, "-e", "btop", NULL };
 static const char *lockscreen[]	  = { "slock", NULL };
+static const char *notes[]	  = { "obsidian", NULL };
 
 
 #include <X11/XF86keysym.h>
@@ -130,13 +140,21 @@ static const Key keys[] = {
 
 	{ MODKEY,			XK_w,                    spawn,            {.v = (const char*[]){ BROWSER, NULL } } },
     // NOTE: Applications
+	{ MODKEY|ShiftMask,		XK_h,      shiftboth,      { .i = -1 }	},
+	{ MODKEY|ControlMask,		XK_h,      shiftswaptags,  { .i = -1 }	},
+	{ MODKEY|ControlMask,		XK_l,      shiftswaptags,  { .i = +1 }	},
+	{ MODKEY|ShiftMask,             XK_l,      shiftboth,      { .i = +1 }	},
+        { MODKEY,                       XK_o,      shiftviewclients,    { .i = +1 } },
+	{ MODKEY|ShiftMask,             XK_o,	   shiftview,         { .i = +1 } },
+	{ MODKEY|ShiftMask,             XK_i,	   shiftview,         { .i = -1 } },
+	{ MODKEY,	                XK_i,      shiftviewclients,    { .i = -1 } },
 
 	{ MODKEY,			XK_Return,          	 spawn,            {.v = termcmd     } },
 	{ MODKEY,			XK_d,                    spawn,            {.v = menucmd     } },
 	{ MODKEY,			XK_r,                    spawn,            {.v = filemanager } },
         { MODKEY,			XK_n,		         spawn,            {.v = texteditor  } },
 	{ MODKEY|ShiftMask,		XK_r,                    spawn,            {.v = taskmanager } },
-	{ MODKEY|ShiftMask,		XK_l,                    spawn,            {.v = lockscreen  } },
+	{ MODKEY,			XK_period,	 	 spawn,	           {.v = notes } },
 
     // NOTE: Layout and Movements
 
@@ -154,7 +172,6 @@ static const Key keys[] = {
 	{ MODKEY,			XK_l,	                 setmfact,         {.f = +0.05} },
 	{ MODKEY,			XK_z,		         incrgaps,         {.i = +3 } },
 	{ MODKEY,			XK_x,		         incrgaps,         {.i = -3 } },
-	{ MODKEY,			XK_period,	 	 focusmon,	   {.i = -1 } },
 	{ MODKEY,			XK_comma,		 focusmon,	   {.i = +1 } },
 	{ MODKEY|ShiftMask,		XK_period,		 tagmon,	   {.i = -1 } },
 	{ MODKEY|ShiftMask,		XK_comma,		 tagmon,	   {.i = +1 } },
@@ -174,7 +191,6 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask,		XK_q,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/powermenu.sh", NULL } } },
 	{ Mod1Mask|ShiftMask,		XK_y,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/youtubesearch", NULL } } },
 	{ Mod1Mask|ShiftMask,		XK_g,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/googlesearch", NULL } } },
-	{ Mod1Mask,			XK_period,               spawn,            {.v = (const char*[]){ "python","/home/aboud/.local/bin/scripts/dmenu/obsidian.py", NULL } } },
 
     // NOTE: XF86 Keys
 	
@@ -184,9 +200,9 @@ static const Key keys[] = {
 	{ 0,			       XF86XK_AudioMute,	 spawn,            {.v = (const char*[]){ "wpctl","set-mute", "@DEFAULT_SINK@", "toggle", NULL } } },
 	{ 0,			       XF86XK_AudioRaiseVolume,  spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%+", NULL } } },
 	{ 0,			       XF86XK_AudioLowerVolume,  spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%-", NULL } } },
-	{ 0,			       XF86XK_AudioPlay,	 spawn,            {.v = (const char*[]){ "mpc", "toggle", NULL } } },
-	{ 0,			       XF86XK_AudioPrev,	 spawn,            {.v = (const char*[]){ "mpc", "prev", NULL } } },
-	{ 0,			       XF86XK_AudioNext,	 spawn,            {.v = (const char*[]){ "mpc", "next", NULL } } },
+	{ 0,			       XF86XK_AudioPlay,	 spawn,            {.v = (const char*[]){ "playerctl", "play-pause", NULL } } },
+	{ 0,			       XF86XK_AudioPrev,	 spawn,            {.v = (const char*[]){ "playerctl", "pervious", NULL } } },
+	{ 0,			       XF86XK_AudioNext,	 spawn,            {.v = (const char*[]){ "playerctl", "next", NULL } } },
 	{ MODKEY,		       XF86XK_AudioPrev,	 spawn,            {.v = (const char*[]){ "mpc", "seek","-10", NULL } } },
 	{ MODKEY,		       XF86XK_AudioNext,	 spawn,            {.v = (const char*[]){ "mpc", "seek","+10", NULL } } },
 };
