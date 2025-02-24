@@ -1,0 +1,21 @@
+--- dwm.c	2019-02-02 14:55:28.000000000 +0200
++++ dwm.c	2019-11-18 19:37:18.792187705 +0200
+@@ -92,6 +92,7 @@ struct Client {
+ 	int basew, baseh, incw, inch, maxw, maxh, minw, minh;
+ 	int bw, oldbw;
+ 	unsigned int tags;
++	unsigned int switchtotag;
+ 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
+ 	Client *next;
+ 	Client *snext;
+@@ -1788,6 +1795,10 @@ unmanage(Client *c, int destroyed)
+ 	focus(NULL);
+ 	updateclientlist();
+ 	arrange(m);
++	if (c->switchtotag) {
++		Arg a = { .ui = c->switchtotag };
++		view(&a);
++	}
+ }
+ 
+ void
