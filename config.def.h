@@ -204,7 +204,7 @@ static const Key keys[] = {
     { MODKEY|ShiftMask,             XK_q,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/powermenu.sh", NULL } } },
 	{ MODKEY,                       XK_Insert,               spawn,            SHCMD("xdotool type $(grep -v '^#' /home/aboud/.local/bookmarks | dmenu -l 10 | cut -d' ' -f1)") },
     { MODKEY|ShiftMask,             XK_e,                    spawn,            SHCMD("xdotool type $(grep -v '^#' /home/aboud/.local/bin/scripts/dmenu/emails | dmenu -l 10 | cut -d' ' -f1)") },
-    { MODKEY,                       XK_s,                    spawn,            SHCMD("maim -u | feh -F - & maim -s -k /home/aboud/personal/pictures/$(date +%s).png && kill $!") },
+    { MODKEY|ShiftMask,             XK_s,                    spawn,            SHCMD("maim -u | feh -F - & maim -s -k /home/aboud/personal/pictures/$(date +%s).png && kill $!") },
 	{ 0,                            XF86XK_MonBrightnessUp,  spawn,            SHCMD("light -A 5") },
 	{ 0,                            XF86XK_MonBrightnessDown,spawn,            SHCMD("light -U 5") },
 	{ 0,                            XF86XK_AudioMute,        spawn,            {.v = (const char*[]){ "wpctl","set-mute", "@DEFAULT_SINK@", "toggle", NULL } } },
