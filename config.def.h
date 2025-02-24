@@ -40,20 +40,26 @@ static const char *colors[][3]      = {
 static const XPoint stickyicon[]    = { {0,0}, {4,0}, {4,8}, {2,6}, {0,8}, {0,0} }; /* represents the icon as an array of vertices */
 static const XPoint stickyiconbb    = {4,8};	/* defines the bottom right corner of the polygon's bounding box (speeds up scaling) */
 
-// NOTE: Scratchpad 
+// NOTE: Scratchpad
 
 typedef struct {
 	const char *name;
 	const void *cmd;
 } Sp;
 const char *spcmd1[] = {TERMINAL, "-n", "spterm", "-g", "60x20", NULL };
+const char *spcmd2[] = {TERMINAL, "-n", "spcalc", "-g", "60x20", "-e", "python3", NULL };
+const char *spcmd3[] = {TERMINAL, "-n", "spfiles","-g", "60x20", "-e", "lfub",    NULL };
 static Sp scratchpads[] = {
 	/* name          cmd  */
-	{"spterm",      spcmd1},
+	{"spterm",       spcmd1},
+	{"spcalc",       spcmd2},
+	{"spfiles",      spcmd3},
 };
 
 /* NOTE: Tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const char *tags[] =    { "", "", "", "", "", "", " ", "", "" };
+static const char *tagsalt[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const int momentaryalttags = 1; /* 1 means alttags will show only when key is held down*/
 
 /* NOTE: Rules */
 static const Rule rules[] = {
@@ -61,11 +67,22 @@ static const Rule rules[] = {
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class     instance  title           tags mask  isfloating  isterminal  noswallow  monitor */
-	{ "Gimp",    NULL,     NULL,           1 << 4 ,   1,          0,          0,         -1 },
-	{ TERMCLASS, NULL,     NULL,           0,         0,          1,          0,         -1 },
-	{ NULL,	     "spterm", NULL,	       SPTAG(0),  1,	      1,          0,         -1 },
-	{ NULL,      NULL,     "Event Tester", 0,         0,          0,          1,         -1 }, /* xev */
+	/* class             instance    title           tags mask  isfloating  isterminal  noswallow  monitor */
+    { "obsidian",          NULL,     NULL,           1 << 0 ,   0,          0,          0,         -1 },
+    { "zen",               NULL,     NULL,           1 << 1 ,   0,          0,          0,         -1 },
+    { "st-256color",       NULL,     NULL,           1 << 2 ,   0,          1,          0,         -1 },
+    { "st",                NULL,     NULL,           1 << 2 ,   0,          1,          0,         -1 },
+    { "news",              NULL,     NULL,           1 << 3 ,   0,          0,          0,         -1 },
+    { "thunderbird",       NULL,     NULL,           1 << 4 ,   0,          0,          0,         -1 },
+	{ "files",             NULL,     NULL,           1 << 5 ,   0,          0,          0,         -1 },
+	{ "music",             NULL,     NULL,           1 << 6 ,   0,          0,          0,         -1 },
+	{ "mpv",               NULL,     NULL,           1 << 7 ,   0,          0,          0,         -1 },
+	{ "protonvpn-app",     NULL,     NULL,           1 << 8 ,   0,          0,          0,         -1 },
+	{ NULL,	               "spterm", NULL,           SPTAG(0),  1,          1,          0,         -1 },
+	{ NULL,	               "spcalc", NULL,           SPTAG(1),  1,          1,          0,         -1 },
+	{ NULL,	               "spfiles",NULL,           SPTAG(2),  1,          1,          0,         -1 },
+    { TERMCLASS,           NULL,     NULL,           0,         0,          1,          0,         -1 },
+	{ NULL,                NULL,     "Event Tester", 0,         0,          0,          1,         -1 }, /* xev */
 };
 
 /*  NOTE: layout(s) */
@@ -103,15 +120,20 @@ static const Layout layouts[] = {
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
 /* commands */
+
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
+
 /* NOTE: Commands */
 static const char *termcmd[]      = { TERMINAL, NULL };
-static const char *menucmd[]      = { MENU,"-l","10", NULL };
-static const char *filemanager[]  = { TERMINAL, "-e", "/home/aboud/.local/bin/lfub", NULL };
+static const char *filemanager[]  = { TERMINAL, "-c", "files","-e", "/home/aboud/.local/bin/lfub", NULL };
+static const char *music[]        = { TERMINAL, "-c", "music","-e", "ncmpcpp",                     NULL };
+static const char *news[]         = { TERMINAL, "-c", "news", "-e", "newsboat",                    NULL };
 static const char *texteditor[]   = { TERMINAL, "-e", "nvim", NULL };
 static const char *taskmanager[]  = { TERMINAL, "-e", "btop", NULL };
-static const char *lockscreen[]	  = { "slock", NULL };
-static const char *notes[]	  = { "obsidian", NULL };
+static const char *menucmd[]      = { MENU,     "-l", "10",   NULL };
+static const char *lockscreen[]	  = { "slock",       NULL };
+static const char *notes[]	      = { "obsidian",    NULL };
+static const char *mail[]	      = { "thunderbird", NULL };
 
 
 #include <X11/XF86keysym.h>
@@ -131,80 +153,66 @@ static const Key keys[] = {
 	TAGKEYS(			XK_7,		6)
 	TAGKEYS(			XK_8,		7)
 	TAGKEYS(			XK_9,		8)
-	{ MODKEY|ControlMask|ShiftMask, XK_q,                    quit,             {1} }, 
-	{ MODKEY,			XK_0,                    view,             {.ui = ~0 } },
-	{ MODKEY|ShiftMask,	        XK_0,                    tag,              {.ui = ~0 } },
-	{ MODKEY,			XK_q,                    killclient,       {0} },
-
-    //    NOTE: Browser
-
-	{ MODKEY,			XK_w,                    spawn,            {.v = (const char*[]){ BROWSER, NULL } } },
-    // NOTE: Applications
-	{ MODKEY|ShiftMask,		XK_h,      shiftboth,      { .i = -1 }	},
-	{ MODKEY|ControlMask,		XK_h,      shiftswaptags,  { .i = -1 }	},
-	{ MODKEY|ControlMask,		XK_l,      shiftswaptags,  { .i = +1 }	},
-	{ MODKEY|ShiftMask,             XK_l,      shiftboth,      { .i = +1 }	},
-        { MODKEY,                       XK_o,      shiftviewclients,    { .i = +1 } },
-	{ MODKEY|ShiftMask,             XK_o,	   shiftview,         { .i = +1 } },
-	{ MODKEY|ShiftMask,             XK_i,	   shiftview,         { .i = -1 } },
-	{ MODKEY,	                XK_i,      shiftviewclients,    { .i = -1 } },
-
-	{ MODKEY,			XK_Return,          	 spawn,            {.v = termcmd     } },
-	{ MODKEY,			XK_d,                    spawn,            {.v = menucmd     } },
-	{ MODKEY,			XK_r,                    spawn,            {.v = filemanager } },
-        { MODKEY,			XK_n,		         spawn,            {.v = texteditor  } },
-	{ MODKEY|ShiftMask,		XK_r,                    spawn,            {.v = taskmanager } },
-	{ MODKEY,			XK_period,	 	 spawn,	           {.v = notes } },
-
-    // NOTE: Layout and Movements
-
-	{ MODKEY,			XK_t,                    setlayout,        {.v = &layouts[0]} }, /* tile */
-	{ MODKEY|ShiftMask,		XK_t,                    setlayout,        {.v = &layouts[1]} }, /* tile */
-	{ MODKEY|ShiftMask,		XK_Return,	         togglescratch,    {.ui = 0} }, 
-	{ MODKEY|ShiftMask,		XK_a,                    defaultgaps,      {0} },
-	{ MODKEY,			XK_a,                    togglegaps,       {0} },
-	{ MODKEY|ShiftMask,		XK_space,                togglefloating,   {0} },
-	{ MODKEY,			XK_f,	                 togglefullscr,    {0} },
-	{ MODKEY,                       XK_s,			 togglesticky,     {0} },
-	{ MODKEY,			XK_b,		         togglebar,        {0} },
-	{ MODKEY|ShiftMask,             XK_Tab,			 toggleattachbelow,{0} },
-	{ MODKEY,			XK_h,	                 setmfact,         {.f = -0.05} },
-	{ MODKEY,			XK_l,	                 setmfact,         {.f = +0.05} },
-	{ MODKEY,			XK_z,		         incrgaps,         {.i = +3 } },
-	{ MODKEY,			XK_x,		         incrgaps,         {.i = -3 } },
-	{ MODKEY,			XK_comma,		 focusmon,	   {.i = +1 } },
-	{ MODKEY|ShiftMask,		XK_period,		 tagmon,	   {.i = -1 } },
-	{ MODKEY|ShiftMask,		XK_comma,		 tagmon,	   {.i = +1 } },
-
-   // NOTE: Scripts
-	{ MODKEY,			XK_Insert,	         spawn,            SHCMD("xdotool type $(grep -v '^#' /home/aboud/.local/bookmarks | dmenu -l 10 | cut -d' ' -f1)") },
-        { MODKEY|ShiftMask,		XK_e,		         spawn,            SHCMD("xdotool type $(grep -v '^#' /home/aboud/.local/bin/scripts/dmenu/emails | dmenu -l 10 | cut -d' ' -f1)") },
-        { MODKEY,			XK_s,	                 spawn,            SHCMD("maim -u | feh -F - & maim -s -k /home/aboud/personal/pictures/$(date +%s).png && kill $!") },
-
-	// NOTE:DMENU
-	{ MODKEY|ShiftMask,		XK_d,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/passmenu", NULL } } },
-	{ MODKEY|ShiftMask,		XK_s,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/excalidraw.sh", NULL } } },
-	{ MODKEY,			XK_p,			 spawn,            {.v = (const char*[]){ TERMINAL,"-e","/home/aboud/.local/bin/scripts/programming/new.sh", NULL } } },
-	{ MODKEY,			XK_space,		 spawn,            {.v = (const char*[]){"/home/aboud/.local/bin/scripts/lang",NULL } }  },
-	{ MODKEY|ShiftMask,		XK_w,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/networkmanager_applet", NULL } } },
-	{ MODKEY|ShiftMask,		XK_b,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/bm.sh", NULL } } },
-	{ MODKEY|ShiftMask,		XK_q,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/powermenu.sh", NULL } } },
-	{ Mod1Mask|ShiftMask,		XK_y,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/youtubesearch", NULL } } },
-	{ Mod1Mask|ShiftMask,		XK_g,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/googlesearch", NULL } } },
-
-    // NOTE: XF86 Keys
-	
-	{ 0,			       XF86XK_MonBrightnessUp,	 spawn,            SHCMD("light -A 5") },
-	{ 0,			       XF86XK_MonBrightnessDown, spawn,	           SHCMD("light -U 5") },
-	{ 0,			       XF86XK_Calculator,	 spawn,            {.v = (const char*[]){ TERMINAL, "-e", "python", NULL } } },
-	{ 0,			       XF86XK_AudioMute,	 spawn,            {.v = (const char*[]){ "wpctl","set-mute", "@DEFAULT_SINK@", "toggle", NULL } } },
-	{ 0,			       XF86XK_AudioRaiseVolume,  spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%+", NULL } } },
-	{ 0,			       XF86XK_AudioLowerVolume,  spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%-", NULL } } },
-	{ 0,			       XF86XK_AudioPlay,	 spawn,            {.v = (const char*[]){ "playerctl", "play-pause", NULL } } },
-	{ 0,			       XF86XK_AudioPrev,	 spawn,            {.v = (const char*[]){ "playerctl", "pervious", NULL } } },
-	{ 0,			       XF86XK_AudioNext,	 spawn,            {.v = (const char*[]){ "playerctl", "next", NULL } } },
-	{ MODKEY,		       XF86XK_AudioPrev,	 spawn,            {.v = (const char*[]){ "mpc", "seek","-10", NULL } } },
-	{ MODKEY,		       XF86XK_AudioNext,	 spawn,            {.v = (const char*[]){ "mpc", "seek","+10", NULL } } },
+	{ MODKEY|ControlMask|ShiftMask, XK_q,                    quit,             {1} },
+	{ MODKEY,                       XK_0,                    view,             {.ui = ~0 } },
+	{ MODKEY|ShiftMask,             XK_0,                    tag,              {.ui = ~0 } },
+	{ MODKEY,                       XK_q,                    killclient,       {0} },
+	{ MODKEY,                       XK_w,                    spawn,            {.v = (const char*[]){ BROWSER, NULL } } },
+	{ MODKEY|ShiftMask,             XK_h,                    shiftboth,        { .i = -1 }	},
+	{ MODKEY|ControlMask,           XK_h,                    shiftswaptags,    { .i = -1 }	},
+	{ MODKEY|ControlMask,           XK_l,                    shiftswaptags,    { .i = +1 }	},
+	{ MODKEY|ShiftMask,             XK_l,                    shiftboth,        { .i = +1 }	},
+    { MODKEY,                       XK_o,                    shiftviewclients, { .i = +1 } },
+	{ MODKEY|ShiftMask,             XK_o,                    shiftview,        { .i = +1 } },
+	{ MODKEY|ShiftMask,             XK_i,                    shiftview,        { .i = -1 } },
+	{ MODKEY,                       XK_i,                    shiftviewclients, { .i = -1 } },
+	{ MODKEY,                       XK_Return,               spawn,            {.v = termcmd     } },
+	{ MODKEY,                       XK_d,                    spawn,            {.v = menucmd     } },
+	{ MODKEY,                       XK_r,                    spawn,            {.v = filemanager } },
+    { MODKEY,                       XK_e,                    spawn,            {.v = texteditor  } },
+    { MODKEY,                       XK_n,                    spawn,            {.v = news  } },
+    { MODKEY|Mod1Mask,              XK_l,                    spawn,            {.v = lockscreen  } },
+	{ MODKEY|ShiftMask,             XK_r,                    spawn,            {.v = taskmanager } },
+	{ MODKEY,                       XK_period,               spawn,            {.v = notes } },
+	{ MODKEY,                       XK_m,                    spawn,            {.v = mail } },
+	{ MODKEY|ShiftMask,             XK_m,                    spawn,            {.v = music } },
+	{ MODKEY,                       XK_t,                    setlayout,        {.v = &layouts[0]} }, /* tile */
+	{ MODKEY|ShiftMask,             XK_t,                    setlayout,        {.v = &layouts[1]} }, /* tile */
+	{ MODKEY|ShiftMask,             XK_Return,               togglescratch,    {.ui = 0} },
+	{ 0,                            XF86XK_Calculator,       togglescratch,    {.ui = 1} },
+	{ MODKEY|ShiftMask,             XK_f,                    togglescratch,    {.ui = 2} },
+	{ MODKEY|ShiftMask,             XK_a,                    defaultgaps,      {0} },
+	{ MODKEY,                       XK_a,                    togglegaps,       {0} },
+	{ MODKEY|ShiftMask,             XK_space,                togglefloating,   {0} },
+	{ MODKEY,                       XK_f,                    togglefullscr,    {0} },
+	{ MODKEY,                       XK_s,                    togglesticky,     {0} },
+	{ MODKEY,                       XK_b,                    togglebar,        {0} },
+	{ MODKEY|ShiftMask,             XK_Tab,                  toggleattachbelow,{0} },
+    { MODKEY|ShiftMask,             XK_n,                    togglealttag,     {0} },
+	{ MODKEY,                       XK_h,                    setmfact,         {.f = -0.05} },
+	{ MODKEY,                       XK_l,                    setmfact,         {.f = +0.05} },
+	{ MODKEY,                       XK_z,                    incrgaps,         {.i = +3 } },
+	{ MODKEY,                       XK_x,                    incrgaps,         {.i = -3 } },
+	{ MODKEY,                       XK_comma,                focusmon,         {.i = +1 } },
+	{ MODKEY|ShiftMask,             XK_period,               tagmon,           {.i = -1 } },
+	{ MODKEY|ShiftMask,             XK_comma,                tagmon,           {.i = +1 } },
+    { MODKEY|ShiftMask,             XK_d,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/passmenu", NULL } } },
+    { MODKEY,                       XK_space,                spawn,            {.v = (const char*[]){"/home/aboud/.local/bin/scripts/lang",NULL } }  },
+    { MODKEY|ShiftMask,             XK_w,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/networkmanager_applet", NULL } } },
+    { MODKEY|ShiftMask,             XK_q,                    spawn,            {.v = (const char*[]){ "/home/aboud/.local/bin/scripts/dmenu/powermenu.sh", NULL } } },
+	{ MODKEY,                       XK_Insert,               spawn,            SHCMD("xdotool type $(grep -v '^#' /home/aboud/.local/bookmarks | dmenu -l 10 | cut -d' ' -f1)") },
+    { MODKEY|ShiftMask,             XK_e,                    spawn,            SHCMD("xdotool type $(grep -v '^#' /home/aboud/.local/bin/scripts/dmenu/emails | dmenu -l 10 | cut -d' ' -f1)") },
+    { MODKEY,                       XK_s,                    spawn,            SHCMD("maim -u | feh -F - & maim -s -k /home/aboud/personal/pictures/$(date +%s).png && kill $!") },
+	{ 0,                            XF86XK_MonBrightnessUp,  spawn,            SHCMD("light -A 5") },
+	{ 0,                            XF86XK_MonBrightnessDown,spawn,            SHCMD("light -U 5") },
+	{ 0,                            XF86XK_AudioMute,        spawn,            {.v = (const char*[]){ "wpctl","set-mute", "@DEFAULT_SINK@", "toggle", NULL } } },
+	{ 0,                            XF86XK_AudioRaiseVolume, spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%+", NULL } } },
+	{ 0,                            XF86XK_AudioLowerVolume, spawn,            {.v = (const char*[]){ "wpctl","set-volume", "@DEFAULT_SINK@", "5%-", NULL } } },
+	{ 0,                            XF86XK_AudioPlay,        spawn,            {.v = (const char*[]){ "playerctl", "play-pause", NULL } } },
+	{ 0,                            XF86XK_AudioPrev,        spawn,            {.v = (const char*[]){ "playerctl", "pervious", NULL } } },
+	{ 0,                            XF86XK_AudioNext,        spawn,            {.v = (const char*[]){ "playerctl", "next", NULL } } },
+	{ MODKEY,                       XF86XK_AudioPrev,        spawn,            {.v = (const char*[]){ "mpc", "seek","-10", NULL } } },
+	{ MODKEY,                       XF86XK_AudioNext,        spawn,            {.v = (const char*[]){ "mpc", "seek","+10", NULL } } },
 };
 
 /* button definitions */
