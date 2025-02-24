@@ -57,7 +57,7 @@ static Sp scratchpads[] = {
 };
 
 /* NOTE: Tagging */
-static const char *tags[] =    { "", "", "", "", "", "", " ", "", "" };
+static const char *tags[] =    { "", "", "", "", "", "", "", "", "" };
 static const char *tagsalt[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 static const int momentaryalttags = 1; /* 1 means alttags will show only when key is held down*/
 
@@ -76,7 +76,7 @@ static const Rule rules[] = {
     { "thunderbird",       NULL,     NULL,           1 << 4 ,   1,         0,          0,          0,         -1 },
 	{ "files",             NULL,     NULL,           1 << 5 ,   1,         0,          0,          0,         -1 },
 	{ "music",             NULL,     NULL,           1 << 6 ,   1,         0,          0,          0,         -1 },
-	{ "mpv",               NULL,     NULL,           1 << 7 ,   1,         0,          0,          0,         -1 },
+	{ "Gimp",              NULL,     NULL,           1 << 7 ,   1,         0,          0,          0,         -1 },
 	{ "Protonvpn-app",     NULL,     NULL,           1 << 8 ,   1,         0,          0,          0,         -1 },
 	{ NULL,	               "spterm", NULL,           SPTAG(0),  0,         1,          1,          0,         -1 },
 	{ NULL,	               "spcalc", NULL,           SPTAG(1),  0,         1,          1,          0,         -1 },
@@ -133,6 +133,7 @@ static const char *taskmanager[]  = { TERMINAL, "-e", "btop", NULL };
 static const char *menucmd[]      = { MENU,     "-l", "10",   NULL };
 static const char *vpn[]          = { "proton-vpn",  NULL };
 static const char *lockscreen[]	  = { "slock",       NULL };
+static const char *photo[]	      = { "gimp",        "/home/aboud/personal/documents/scrathing/scratchxcf.xcf"       ,NULL };
 static const char *notes[]	      = { "obsidian",    NULL };
 static const char *mail[]	      = { "thunderbird", NULL };
 
@@ -173,6 +174,7 @@ static const Key keys[] = {
     { MODKEY,                       XK_e,                    spawn,            {.v = texteditor  } },
     { MODKEY,                       XK_n,                    spawn,            {.v = news  } },
     { MODKEY|Mod1Mask,              XK_l,                    spawn,            {.v = lockscreen  } },
+    { MODKEY,                       XK_p,                    spawn,            {.v = photo  } },
 	{ MODKEY|ShiftMask,             XK_v,                    spawn,            {.v = vpn } },
 	{ MODKEY|ShiftMask,             XK_r,                    spawn,            {.v = taskmanager } },
 	{ MODKEY,                       XK_period,               spawn,            {.v = notes } },
