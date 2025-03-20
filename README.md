@@ -1,22 +1,23 @@
 # dwm - dynamic window manager
     dwm is an extremely fast, small, and dynamic window manager for X.
+## Abdullah Eskeif's Build
 
-# Patches order: 
+This build is optimized for my own personal workflow on my own local machine only with 1 moniter, feel free to try it for yourself.
+
+## Patches order:
     - pertag [x]
-    - gestures [x]
+    - alternativetags [x]
     - hide vacant tags [x]
     - sticky [x]
     - sticky indicator [x]
     - actualfullscreen [x]
-    - attach below [x]
     - swallow [x]
     - vanitygaps [x]
     - stacker [x]
     - scratchpads [x]
-    - autostart [x]
-    - selfrestart [x]
-    - smartborders [ ]
-    - systray(SUPEREXPIREMINTAL) [ ]
+    - vanitygaps [x]
+    - autostarttags [x]
+    - systray(SUPEREXPIREMINTAL) [x]
 
 
 
